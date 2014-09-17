@@ -18,30 +18,18 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.hud = MBProgressHUD.showHUDAddedTo(self.view, animated: true)
-        self.hud.mode = MBProgressHUDModeIndeterminate
-        self.hud.labelText = "Loading..."
-
+        var refresh: UIRefreshControl = UIRefreshControl()
+        
+        var textColor = [NSForegroundColorAttributeName : UIColor.whiteColor()]
+        refresh.attributedTitle = NSAttributedString(string: "Pull to refresh", attributes: textColor)
+        refresh.addTarget(self, action: "onRefresh:", forControlEvents: UIControlEvents.ValueChanged)
+        refresh.tintColor = UIColor.whiteColor()
+        tableView.addSubview(refresh)
+        
         tableView.delegate = self
         tableView.dataSource = self
         
-        var url = "http://api.rottentomatoes.com/api/public/v1.0/lists/movies/box_office.json?apikey=suyp4tp4qz9ay2funn7pymvj&limit=20&country=us"
-        
-        var request = NSURLRequest(URL: NSURL(string: url))
-        
-        NSURLConnection.sendAsynchronousRequest(request, queue: NSOperationQueue.mainQueue()) { (response: NSURLResponse!, data: NSData!, error:NSError!) -> Void in
-            
-            var object = NSJSONSerialization.JSONObjectWithData(data, options: nil, error: nil) as NSDictionary
-            
-            //println("object: \(object)")
-                
-            self.movies = object["movies"] as [NSDictionary]
-            
-            self.hud.hide(true)
-            
-            self.tableView.reloadData()
-        }
-        
+        getData()
     }
 
     override func didReceiveMemoryWarning() {
@@ -88,6 +76,43 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         var movie = self.movies[filmIndex.row]
         
         detailsViewController.film = movie
+    }
+    
+    func getData() -> Void {
+        
+        self.hud = MBProgressHUD.showHUDAddedTo(self.view, animated: true)
+        self.hud.mode = MBProgressHUDModeIndeterminate
+        self.hud.labelText = "Loading..."
+        
+        var url = "http://api.rottentomatoes.com/api/public/v1.0/lists/movies/box_office.json?apikey=suyp4tp4qz9ay2funn7pymvj&limit=20&country=us"
+        
+        var request = NSURLRequest(URL: NSURL(string: url))
+        
+        NSURLConnection.sendAsynchronousRequest(request, queue: NSOperationQueue.mainQueue()) { (response: NSURLResponse!, data: NSData!, error:NSError!) -> Void in
+            
+            if error != nil {
+                TSMessage.showNotificationInViewController(self, title: "Network Error!", subtitle: error.localizedDescription, type: TSMessageNotificationType.Error, duration: -1, canBeDismissedByUser: true)
+            } else {
+                var object = NSJSONSerialization.JSONObjectWithData(data, options: nil, error: nil) as NSDictionary
+                
+                //println("object: \(object)")
+                
+                self.movies = object["movies"] as [NSDictionary]
+                
+                
+                self.tableView.reloadData()
+            }
+            
+            self.hud.hide(true)
+            
+        }
+    }
+    
+    func onRefresh(sender: AnyObject) {
+        
+        var refresh = sender as UIRefreshControl
+        refresh.endRefreshing()
+        getData()
     }
     
     /*
