@@ -84,7 +84,7 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         self.hud.mode = MBProgressHUDModeIndeterminate
         self.hud.labelText = "Loading..."
         
-        var url = "http://api.rottentomatoes.com/api/public/v1.0/lists/movies/box_office.json?apikey=suyp4tp4qz9ay2funn7pymvj&limit=20&country=us"
+        var url = "http://api.rottentomatoes.com/api/public/v1.0/lists/movies/box_office.json?apikey=XXXXXXX=20&country=us"
         
         var request = NSURLRequest(URL: NSURL(string: url))
         
